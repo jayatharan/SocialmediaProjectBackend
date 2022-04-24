@@ -13,8 +13,9 @@ const Choice = require('./models/choiceModel')
 //port
 const PORT = 5000
 
-//const dbURI = 'mongodb+srv://jayatharan:1234@cluster0.6qbug.mongodb.net/socialApp?retryWrites=true&w=majority' 
-const dbURI = 'mongodb://localhost:27017/socialApp'
+const dbURI = 'mongodb+srv://jayatharan:yhDCGk4I7TbMjs0E@cluster0.6qbug.mongodb.net/myFirstDatabase?retryWrites=true&w=majority' 
+
+//const dbURI = 'mongodb://localhost:27017/socialApp'
 const app = express()
 
 
