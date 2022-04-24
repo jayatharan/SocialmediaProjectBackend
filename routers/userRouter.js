@@ -7,8 +7,9 @@ const Notification = require('../models/notificationModel')
 const { generateToken, isAuth, getUserSpecificData, getMyRequestedIds, removeFriendOfUser, updatePostShowto, newSchoolNotification } = require('../utils.js')
 
 const userRouter = express.Router()
-
-const client = new OAuth2Client("686177336588-qhhagupocke5qsclkt0n07h9s6c8bbpu.apps.googleusercontent.com")
+//359230376538-j79misgqm7inonvgpgfkvafa440li4fe.apps.googleusercontent.com
+//686177336588-qhhagupocke5qsclkt0n07h9s6c8bbpu.apps.googleusercontent.com
+const client = new OAuth2Client("359230376538-j79misgqm7inonvgpgfkvafa440li4fe.apps.googleusercontent.com")
 
 userRouter.get('/get_users',async(req,res)=>{
     const params = req.query
@@ -46,7 +47,7 @@ userRouter.get('/my_data',isAuth,async(req,res)=>{
 
 userRouter.post('/login',(req,res)=>{
     const {tokenId} = req.body
-    client.verifyIdToken({idToken:tokenId,audience:"686177336588-qhhagupocke5qsclkt0n07h9s6c8bbpu.apps.googleusercontent.com"})
+    client.verifyIdToken({idToken:tokenId,audience:"359230376538-j79misgqm7inonvgpgfkvafa440li4fe.apps.googleusercontent.com"})
     .then(response => {
         User.findOne({email:response.payload.email})
         .then((o_user) => {
@@ -74,11 +75,11 @@ userRouter.post('/login',(req,res)=>{
             }
         })
         .catch((err)=>{
-                res.send(err)
+                res.status(401).send(err)
         })
     })
     .catch((err)=>{
-                res.send(err)
+                res.status(401).send(err)
         })
 })
 
