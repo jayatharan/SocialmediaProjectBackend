@@ -3,6 +3,7 @@ const { isAuth, getUserSpecificData, newPostNotification } = require('../utils.j
 const Post = require('../models/postModel')
 const User = require('../models/userModel')
 const Report = require('../models/reportModel')
+const ReportComment = require('../models/reportCommentModel')
 
 const postRouter = express.Router()
 
@@ -79,6 +80,17 @@ postRouter.get('/reported_post' , async(req,res)=>{
             _id:{$in:u_ids}
         })
         res.send({posts,users})
+    }catch (err){
+        res.status(400).send(err)
+    }
+})
+
+postRouter.get('/reported_comment' , async(req,res)=>{
+    try{
+        const reports = await ReportComment.find({
+            resolved:false
+        })
+        res.send(reports)
     }catch (err){
         res.status(400).send(err)
     }
@@ -219,6 +231,63 @@ postRouter.post('/report/:p_id/resolve', async(req,res)=>{
             await Post.deleteOne({_id:p_id})
         }
         res.send({success:true})
+    }catch (err){
+        console.log(err)
+        res.status(400).send(err)
+    }
+})
+
+postRouter.post('/report_comment', async(req,res)=>{
+    try{
+        const data = req.body
+        const p_id = data.p_id
+        const c_id = data.c_id
+        const post = await Post.findById(p_id)
+        const comment = post.comments.find((c)=>c._id == c_id)
+        var report = new ReportComment({
+           postId:p_id,
+           commentId:c_id
+        })
+        if(comment){
+            report.comment = comment.content
+        }
+        report.save()
+        .then((r)=>{
+            res.send(r)
+        }).catch((err)=>{
+            console.log(err)
+            res.status(400).send(err)
+        })
+    }catch (err){
+        console.log(err)
+        res.status(400).send(err)
+    }
+})
+
+postRouter.post('/report_comment/:r_id/resolve', async(req,res)=>{
+    try{
+        const data = req.body
+        const r_id = req.params['r_id']
+        const report = await ReportComment.findById(r_id);
+        report.resolved = true
+        let p_id = report.postId
+        let c_id = report.commentId
+        var post = null
+        if(data.delete){
+            post = await Post.findById(p_id)
+            const commentIds = post.comments.map((c)=>c._id.toString())
+            var index = commentIds.findIndex((id) => {
+                if(id === c_id.toString()) return true;
+                else return false;
+            })
+            if (index>-1){
+                post.comments.splice(index,1)
+            }
+            post.commentCount = post.comments.length
+            await post.save()
+        }
+        await report.save()
+        res.send({success:true, report})
     }catch (err){
         console.log(err)
         res.status(400).send(err)
