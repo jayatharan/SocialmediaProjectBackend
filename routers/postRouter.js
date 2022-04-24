@@ -1,9 +1,11 @@
 const express = require('express')
+const axios = require('axios')
 const { isAuth, getUserSpecificData, newPostNotification } = require('../utils.js')
 const Post = require('../models/postModel')
 const User = require('../models/userModel')
 const Report = require('../models/reportModel')
 const ReportComment = require('../models/reportCommentModel')
+
 
 const postRouter = express.Router()
 
@@ -176,8 +178,33 @@ postRouter.post('/add_comment/:p_id',isAuth,async(req,res) => {
     post.comments=[...post.comments,comment]
     post.commentCount = post.comments.length
     await post.save()
-    
-    res.send(post.comments)
+    var comments = post.comments 
+    await axios({
+        method:'post',
+        url:'http://localhost:5001/api/predict',
+        data:{
+            "user_input":data.content
+        }
+    }).then((response) => {
+        var toxic = false;
+        for (const key in response.data){
+            if(response.data[key] > 0.5){
+                toxic = true
+            }
+        }
+        if(toxic){
+            var report = new ReportComment({
+                postId:post._id,
+                commentId:comments[comments.length - 1]._id,
+                comment:data.content
+            })
+            report.save();
+        }
+        console.log(response)
+    }).catch((err)=>{
+        console.log(err)
+    })
+    res.send(comments)
 })
 
 postRouter.get('/delete_comment/:p_id/:c_id',isAuth,async(req,res)=>{
